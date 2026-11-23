@@ -1065,6 +1065,28 @@ body {
   white-space: nowrap;
 }
 
+.recommended-margin {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.recommended-margin__value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--brand-primary);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+.recommended-margin__why {
+  margin: 0;
+  flex: 1;
+  min-width: 200px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
 /* Scenario bar: wash track from low to high, two direct-labeled markers */
 
 .scenario-bar__track {
@@ -1107,12 +1129,20 @@ body {
 .scenario-bar__marker--recommended .scenario-bar__marker-label { color: var(--series-blue); bottom: auto; top: 16px; }
 
 .scenario-bar__scale {
-  display: flex;
-  justify-content: space-between;
+  position: relative;
+  height: 16px;
   font-size: 0.7rem;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
+.scenario-bar__scale-label {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.scenario-bar__scale-label:first-child { transform: translateX(0); }
+.scenario-bar__scale-label--end { transform: translateX(-100%); }
 
 /* ---------- Flags ---------- */
 

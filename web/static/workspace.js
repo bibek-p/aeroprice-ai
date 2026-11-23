@@ -270,6 +270,7 @@ function buildResultCardHTML(r) {
         </div>
       </div>
 
+      ${buildRecommendedMarginHTML(r)}
       ${buildMarginMeterHTML(r, severity)}
       ${buildScenarioBarHTML(r)}
       ${flagsHTML}
@@ -302,6 +303,18 @@ function buildResultCardHTML(r) {
 
       ${approvalHTML}
     </article>`;
+}
+
+function buildRecommendedMarginHTML(r) {
+  const target = r.thresholds.target_margin_pct;
+  return `
+    <div class="viz-block">
+      <div class="viz-block__header"><span>Recommended margin</span></div>
+      <div class="recommended-margin">
+        <span class="recommended-margin__value">${target}%</span>
+        <p class="recommended-margin__why">${r.margin_analysis}</p>
+      </div>
+    </div>`;
 }
 
 function buildMarginMeterHTML(r, severity) {
@@ -338,6 +351,13 @@ function buildScenarioBarHTML(r) {
   const span = domainMax - domainMin || 1;
   const pct = (value) => ((value - domainMin) / span) * 100;
 
+  // The low/target/high scenario prices are NOT evenly spaced -- margin-to-price
+  // is a nonlinear relationship (price = cost / (1 - margin%)), so "high margin"
+  // sits disproportionately far to the right of low/target on a linear price
+  // scale. The scale labels below the track must be positioned at the same
+  // pct() coordinates as the dots above them, not evenly spread with
+  // justify-content -- otherwise a label like "target $X" renders nowhere near
+  // its own dot, which is exactly what made this chart look wrong.
   return `
     <div class="viz-block">
       <div class="viz-block__header">
@@ -354,9 +374,9 @@ function buildScenarioBarHTML(r) {
           </div>
         </div>
         <div class="scenario-bar__scale">
-          <span>low ${currency(low)}</span>
-          <span>target ${currency(target)}</span>
-          <span>high ${currency(high)}</span>
+          <span class="scenario-bar__scale-label" style="left: ${pct(low)}%;">low ${currency(low)}</span>
+          <span class="scenario-bar__scale-label" style="left: ${pct(target)}%;">target ${currency(target)}</span>
+          <span class="scenario-bar__scale-label scenario-bar__scale-label--end" style="left: ${pct(high)}%;">high ${currency(high)}</span>
         </div>
       </div>
     </div>`;
