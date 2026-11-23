@@ -4,6 +4,11 @@ This document describes the system as it actually exists in this repository toda
 — not a design aspiration. It reflects the real agent pipeline, data model, auth
 model, and request lifecycle currently implemented in `agents/` and `web/`.
 
+![AeroPrice AI architecture diagram](docs/architecture.png)
+
+*(Source: [`docs/architecture.html`](docs/architecture.html) — a standalone page,
+open it directly in a browser for the live version.)*
+
 ## Tech stack
 
 | Layer | Technology |
