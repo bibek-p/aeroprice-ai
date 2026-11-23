@@ -16,6 +16,79 @@ model, and request lifecycle currently implemented in `agents/` and `web/`.
 | AI model | OpenAI `gpt-4o-mini`, manual tool-calling loop |
 | Auth | Server-side sessions (bcrypt-hashed passwords, cookie-based) |
 
+## End-to-end flow: how a pricing request actually works
+
+This traces one real request start to finish — a user submitting a part number
+on the Pricing Workspace, through every agent, to either an auto-approved
+decision or a human review.
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Browser
+    participant FastAPI as web/server.py
+    participant Supervisor as agents/supervisor.py
+    participant DataAgent as Data Retrieval /<br/>Inventory / Cost Agents
+    participant PricingEngine as pricing_engine.py<br/>(pure Python math)
+    participant PricingAgent as Pricing Strategy Agent
+    participant Gate as Decision Gate<br/>(pure Python)
+    participant ApprovalAgent as Approval Agent
+    participant DB as SQLite
+    participant OpenAI
+
+    User->>Browser: Enter part number, click "Run"
+    Browser->>FastAPI: GET /api/price-request-stream (SSE)
+    FastAPI->>Supervisor: process_pricing_request_stream(part_number)
+    Supervisor->>DB: create pipeline_runs row (status=running)
+
+    loop 3 data agents, one at a time
+        Supervisor-->>Browser: SSE step_start
+        Supervisor->>DataAgent: gather_*(part_number)
+        DataAgent->>DB: look up part / inventory / cost (tool call)
+        DataAgent->>OpenAI: summarize tool result
+        OpenAI-->>DataAgent: structured JSON
+        DataAgent-->>Supervisor: facts
+        Supervisor->>DB: record agent_executions + tool_executions
+        Supervisor-->>Browser: SSE step_done
+    end
+
+    Supervisor->>PricingEngine: compute_recommendation(facts)
+    PricingEngine-->>Supervisor: recommended price, margin, scenarios (deterministic)
+    Supervisor-->>Browser: SSE step_start (Pricing Strategy Agent)
+    Supervisor->>PricingAgent: recommend_price(facts)
+    PricingAgent->>OpenAI: explain the already-computed numbers
+    OpenAI-->>PricingAgent: rationale report (narrative only, no math)
+    Supervisor-->>Browser: SSE step_done
+
+    Supervisor-->>Browser: SSE step_start (Decision Gate)
+    Supervisor->>Gate: apply policy thresholds
+    alt within policy
+        Gate-->>Supervisor: AUTO_APPROVED
+    else flagged (margin/lifecycle/change% exceeds policy)
+        Gate-->>Supervisor: requires_approval = true
+        Supervisor-->>Browser: SSE step_start (Approval Agent)
+        Supervisor->>ApprovalAgent: draft_approval_request(pricing)
+        ApprovalAgent->>OpenAI: write human-readable request
+        OpenAI-->>ApprovalAgent: approval request text
+        Supervisor-->>Browser: SSE step_done
+    end
+    Supervisor-->>Browser: SSE step_done (Decision Gate)
+
+    Supervisor->>DB: update pipeline_runs (status=completed)
+    Supervisor->>DB: append record to logs/audit_log.jsonl (immutable)
+    Supervisor-->>Browser: SSE result (full decision record)
+    Browser-->>User: Render price, margin, decision badge, rationale
+
+    opt decision was PENDING_PRICING_LEADER_APPROVAL
+        actor Approver
+        Approver->>Browser: Open Approval Queue, click Approve/Reject
+        Browser->>FastAPI: POST /api/approvals/{id}/approve
+        FastAPI->>FastAPI: verify approver is assigned to this part's category
+        FastAPI->>DB: upsert approval_reviews (status, reviewer, note)
+        FastAPI-->>Browser: updated review status
+    end
+```
+
 ## High-level request flow
 
 ```mermaid
