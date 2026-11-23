@@ -1087,63 +1087,6 @@ body {
   line-height: 1.5;
 }
 
-/* Scenario bar: wash track from low to high, two direct-labeled markers */
-
-.scenario-bar__track {
-  position: relative;
-  height: 6px;
-  border-radius: 4px;
-  background: var(--series-blue-wash);
-  opacity: 0.6;
-  margin: 40px 0 8px;
-}
-
-.scenario-bar__marker {
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 2px solid var(--surface-1);
-  transition: left 0.4s ease;
-}
-.scenario-bar__marker--current {
-  background: var(--text-secondary);
-}
-.scenario-bar__marker--recommended {
-  background: var(--series-blue);
-  width: 14px;
-  height: 14px;
-}
-.scenario-bar__marker-label {
-  position: absolute;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.68rem;
-  font-weight: 650;
-  color: var(--text-secondary);
-  white-space: nowrap;
-}
-.scenario-bar__marker--recommended .scenario-bar__marker-label { color: var(--series-blue); bottom: auto; top: 16px; }
-
-.scenario-bar__scale {
-  position: relative;
-  height: 16px;
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-.scenario-bar__scale-label {
-  position: absolute;
-  top: 0;
-  transform: translateX(-50%);
-  white-space: nowrap;
-}
-.scenario-bar__scale-label:first-child { transform: translateX(0); }
-.scenario-bar__scale-label--end { transform: translateX(-100%); }
-
 /* ---------- Flags ---------- */
 
 .flags {

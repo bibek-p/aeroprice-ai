@@ -272,7 +272,6 @@ function buildResultCardHTML(r) {
 
       ${buildRecommendedMarginHTML(r)}
       ${buildMarginMeterHTML(r, severity)}
-      ${buildScenarioBarHTML(r)}
       ${flagsHTML}
 
       <div class="viz-block">
@@ -339,44 +338,6 @@ function buildMarginMeterHTML(r, severity) {
           <div class="meter__fill" style="width: ${fillWidth}%; background: var(--status-${severity});"></div>
           <div class="meter__tick" style="left: ${pct(min_margin_pct)}%;"><span>min</span></div>
           <div class="meter__tick" style="left: ${pct(target_margin_pct)}%;"><span>target</span></div>
-        </div>
-      </div>
-    </div>`;
-}
-
-function buildScenarioBarHTML(r) {
-  const { low, high, target } = r.scenarios;
-  const domainMin = Math.min(low, r.current_list_price) * 0.95;
-  const domainMax = Math.max(high, r.current_list_price) * 1.05;
-  const span = domainMax - domainMin || 1;
-  const pct = (value) => ((value - domainMin) / span) * 100;
-
-  // The low/target/high scenario prices are NOT evenly spaced -- margin-to-price
-  // is a nonlinear relationship (price = cost / (1 - margin%)), so "high margin"
-  // sits disproportionately far to the right of low/target on a linear price
-  // scale. The scale labels below the track must be positioned at the same
-  // pct() coordinates as the dots above them, not evenly spread with
-  // justify-content -- otherwise a label like "target $X" renders nowhere near
-  // its own dot, which is exactly what made this chart look wrong.
-  return `
-    <div class="viz-block">
-      <div class="viz-block__header">
-        <span>Pricing scenarios</span>
-        <span class="muted">low &rarr; target &rarr; high margin</span>
-      </div>
-      <div class="scenario-bar">
-        <div class="scenario-bar__track">
-          <div class="scenario-bar__marker scenario-bar__marker--current" style="left: ${pct(r.current_list_price)}%;">
-            <span class="scenario-bar__marker-label">current</span>
-          </div>
-          <div class="scenario-bar__marker scenario-bar__marker--recommended" style="left: ${pct(r.recommended_price)}%;">
-            <span class="scenario-bar__marker-label">recommended</span>
-          </div>
-        </div>
-        <div class="scenario-bar__scale">
-          <span class="scenario-bar__scale-label" style="left: ${pct(low)}%;">low ${currency(low)}</span>
-          <span class="scenario-bar__scale-label" style="left: ${pct(target)}%;">target ${currency(target)}</span>
-          <span class="scenario-bar__scale-label scenario-bar__scale-label--end" style="left: ${pct(high)}%;">high ${currency(high)}</span>
         </div>
       </div>
     </div>`;
